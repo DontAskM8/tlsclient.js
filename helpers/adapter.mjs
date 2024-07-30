@@ -99,10 +99,7 @@ export function createAdapter(_config) {
         requestUrl: config.params ? [config.url, new globalThis.URLSearchParams(config.params).toString()].join('?') : config.url, 
         requestMethod: config.method.toUpperCase(),
         requestBody:config.data instanceof globalThis.FormData ? await (async () => {const chunks = []; for await (const chunk of axios.formDataToStream(config.data, _ => config.headers.set(_))) chunks.push(globalThis.Buffer.from(chunk)); return globalThis.Buffer.concat(chunks).toString('base64')})() : globalThis.Object.is(typeof config.data, 'undefined') ? undefined : globalThis.btoa(config.data),
-        headers: {
-          ...(config.defaultHeaders || DEFAULT_HEADERS),
-          ...globalThis.Object.fromEntries(globalThis.Object.entries(config.headers).filter(_ => !globalThis.Object.is(_.at(0), 'Content-Length'))),
-        },
+        headers: globalThis.Object.is(config.method, 'get') ? {...(config.defaultHeaders || DEFAULT_HEADERS), ...config.headers} : globalThis.Object.fromEntries(globalThis.Object.entries(config.headers).filter(_ => !globalThis.Object.is(_.at(0), 'Content-Length'))),
         requestCookies: await config.cookiejar?.serialize()?.then(_ => _.cookies.map(_ => globalThis.Object.fromEntries(globalThis.Object.entries(_).map(_ => globalThis.Object.is(_.at(0), 'key') ? ['name', _.at(1)] : _)))) ?? []
       };
       let res = await pool.exec("request", [JSON.stringify(requestPayload)]);
