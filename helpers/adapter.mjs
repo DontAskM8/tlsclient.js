@@ -92,7 +92,7 @@ export function createAdapter(_config) {
         withRandomTLSExtensionOrder: config.withRandomTLSExtensionOrder ?? true,
         timeoutSeconds: (config.timeout / 1000) ?? 30,
         timeoutMilliseconds: 0,
-        sessionId: Date.now().toString(),
+        sessionId: config.sessionId ?? Date.now().toString(),
         isRotatingProxy: false,
         proxyUrl: config.proxy ?? "",
         customTlsClient: config.customTlsClient ?? undefined,
@@ -108,7 +108,7 @@ export function createAdapter(_config) {
       const resJSON = JSON.parse(res);
       let resHeaders = {};
       Object.keys(resJSON?.headers ?? {}).forEach((key) => {
-        resHeaders[key] = resJSON.headers[key].length === 1
+        resHeaders[key] = resJSON.headers[key].length === 1 && key !== "Set-Cookie"
             ? resJSON.headers[key][0]
             : resJSON.headers[key];
       });
@@ -125,6 +125,7 @@ export function createAdapter(_config) {
               : resJSON.target
           ),
         },
+		cookies: resJSON.cookies
       };
       const validateStatus = response.config.validateStatus;
       if (!response.status || !validateStatus || validateStatus(response.status)) return response
