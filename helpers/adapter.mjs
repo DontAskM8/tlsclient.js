@@ -23,7 +23,7 @@ let DEFAULT_HEADERS = {
   "sec-fetch-site": "none",
   "sec-fetch-user": "?1",
   'upgrade-insecure-requests':'1',
-  "user-agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+  "user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
   'viewport-width':'803'
 };
 let DEFAULT_HEADER_ORDER = [
@@ -79,27 +79,29 @@ export function createAdapter(_config) {
   );
   return async function (config) {
       const requestPayload = {
-        tlsClientIdentifier: config.tlsClientIdentifier || DEFAULT_CLIENT_ID,
-        followRedirects: config.followRedirects || true,
-        insecureSkipVerify: config.insecureSkipVerify || true,
+        tlsClientIdentifier: config.tlsClientIdentifier ?? DEFAULT_CLIENT_ID,
+        followRedirects: config.followRedirects ?? true,
+        insecureSkipVerify: config.insecureSkipVerify ?? true,
+        withoutCookieJar: config.withoutCookieJar ?? true,
+        withDefaultCookieJar: config.withDefaultCookieJar ?? false,
         isByteRequest: true,
         isByteResponse: true,
         catchPanics: false,
         withDebug: false,
-        forceHttp1: config.forceHttp1 || false,
-        withRandomTLSExtensionOrder: config.withRandomTLSExtensionOrder || true,
-        timeoutSeconds: config.timeout / 1000 || 30,
+        forceHttp1: config.forceHttp1 ?? false,
+        withRandomTLSExtensionOrder: config.withRandomTLSExtensionOrder ?? true,
+        timeoutSeconds: (config.timeout / 1000) ?? 30,
         timeoutMilliseconds: 0,
         sessionId: Date.now().toString(),
         isRotatingProxy: false,
-        proxyUrl: config.proxy || "",
-        customTlsClient: config.customTlsClient || undefined,
+        proxyUrl: config.proxy ?? "",
+        customTlsClient: config.customTlsClient ?? undefined,
         certificatePinningHosts: {},
-        headerOrder: config.headerOrder || DEFAULT_HEADER_ORDER,
+        headerOrder: config.headerOrder ?? DEFAULT_HEADER_ORDER,
         requestUrl: config.params ? [config.url, new globalThis.URLSearchParams(config.params).toString()].join('?') : config.url, 
         requestMethod: config.method.toUpperCase(),
         requestBody:config.data instanceof globalThis.FormData ? await (async () => {const chunks = []; for await (const chunk of axios.formDataToStream(config.data, _ => config.headers.set(_))) chunks.push(globalThis.Buffer.from(chunk)); return globalThis.Buffer.concat(chunks).toString('base64')})() : globalThis.Object.is(typeof config.data, 'undefined') ? undefined : globalThis.btoa(config.data),
-        headers: globalThis.Object.is(config.method, 'get') ? {...(config.defaultHeaders ?? DEFAULT_HEADERS), ...config.headers} : {...globalThis.Object.fromEntries(globalThis.Object.entries(config.headers).filter(_ => !globalThis.Object.is(_.at(0), 'Content-Length'))), 'user-agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'},
+        headers: globalThis.Object.is(config.method, 'get') ? {...(config.defaultHeaders ?? DEFAULT_HEADERS), ...config.headers} : {...globalThis.Object.fromEntries(globalThis.Object.entries(config.headers).filter(_ => !globalThis.Object.is(_.at(0), 'Content-Length'))), 'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36'},
         requestCookies: await config.cookiejar?.serialize()?.then(_ => _.cookies.map(_ => globalThis.Object.fromEntries(globalThis.Object.entries(_).map(_ => globalThis.Object.is(_.at(0), 'key') ? ['name', _.at(1)] : _)))) ?? []
       };
       let res = await pool.exec("request", [JSON.stringify(requestPayload)]);
